@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using DG.Tweening;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -7,7 +9,7 @@ public class PlayerController : MonoBehaviour
     public Transform bulletSpawn;
     public bool isLocalPlayer = false;
     bool isInput;
-    [SerializeField] internal Animator m_Animator;
+    [SerializeField] public Animator m_Animator;
 
     Vector3 oldPosition;
     Vector3 currentPosition;
@@ -25,19 +27,13 @@ public class PlayerController : MonoBehaviour
         SimpleCamFollow.instance.m_Target = this.transform;
         mJoysticks = GameObject.FindObjectOfType<FixedJoystick>();
         //	transform.rotation = Quaternion.identity;
+        //ShootNowl = GameObject.Find("Shootbtn").GetComponent<Button>();
+        GameManager.Instance.mShootBullet.onClick.AddListener(shootBullet);
     }
     // Update is called once per frame
     void Update()
     {
-        if (!isLocalPlayer)
-        {
-            return;
-        }
-        /*    float horizontal = mJoysticks.Horizontal;
-            float vertical = mJoysticks.Vertical;
-            var movementDir = new Vector3(horizontal, 0f, vertical);
-            transform.localPosition = new Vector3(transform.localPosition.x + movementDir.x * GameManager.Instance.Movespeed * Time.deltaTime, transform.localPosition.y, transform.localPosition.z + movementDir.z * GameManager.Instance.Movespeed * Time.deltaTime);//old is -0.633f			Rotate(movementDir);
-            Rotate(movementDir);*/
+        if (!isLocalPlayer) { return;}
         Movement();
         if (currentPosition != oldPosition)
         {
@@ -51,13 +47,7 @@ public class PlayerController : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            NetworkManager n = NetworkManager.instance.GetComponent<NetworkManager>();
-            n.CommandShoot();
-            m_Animator.SetBool("GunAttack", true);
-        }
-        else
-        {
-         //   m_Animator.SetBool("GunAttack", false);
+            shootBullet();
         }
     }
     public void CmdFire()
@@ -80,8 +70,8 @@ public class PlayerController : MonoBehaviour
     void Movement()
     {
         // Pass input value
-      var  horizontal = mJoysticks.Horizontal;
-       var vertical = mJoysticks.Vertical;
+        var horizontal = mJoysticks.Horizontal;
+        var vertical = mJoysticks.Vertical;
         Vector3 movementDir = new Vector3(horizontal, 0f, vertical);
         isInput = movementDir != Vector3.zero;
         if (!isInput)
@@ -98,6 +88,24 @@ public class PlayerController : MonoBehaviour
             transform.localPosition = new Vector3(transform.localPosition.x + movementDir.x * GameManager.Instance.Movespeed * Time.deltaTime, transform.localPosition.y, transform.localPosition.z + movementDir.z * GameManager.Instance.Movespeed * Time.deltaTime);//old is -0.633f
             Rotate(movementDir);
         }
+    }
+    public void shootBullet()
+    {
+        NetworkManager n = NetworkManager.instance.GetComponent<NetworkManager>();
+        if (m_Animator) 
+        {
+            m_Animator.SetBool("GunAttack", true);
+            DOVirtual.DelayedCall(.25f, () =>
+            {
+                n.CommandShoot();
+                StartCoroutine(stopAnimation());
+            });
+        }
+    }
+    IEnumerator stopAnimation()
+    {
+        yield return new WaitForSeconds(1.167f);
+        m_Animator.SetBool("GunAttack", false);
     }
 
 }

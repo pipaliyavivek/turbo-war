@@ -12,7 +12,6 @@ public class NetworkManager : MonoBehaviour {
 	public SocketIOComponent socket;
 	public InputField playerNameInput;
 	public GameObject player;
-
 	void Awake()
 	{
 		if (instance == null)
@@ -21,7 +20,6 @@ public class NetworkManager : MonoBehaviour {
 			Destroy(gameObject);
 		DontDestroyOnLoad(gameObject);
 	}
-
 	// Use this for initialization
 	void Start () {
 		// subscribe to all the various websocket events
@@ -56,7 +54,6 @@ public class NetworkManager : MonoBehaviour {
 		socket.Emit("play", new JSONObject(data));
 		canvas.gameObject.SetActive(false);
 	}
-
 	public void CommandMove(Vector3 vec3)
 	{
 		string data = JsonUtility.ToJson(new PositionJSON(vec3));
